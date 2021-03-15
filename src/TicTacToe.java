@@ -61,6 +61,13 @@ public class TicTacToe {
                             cells[x][y].open();
                             changeLabel();
                             changeLatest();
+                            if(checkVictory()){
+                                for(int i = 0; i < 3; i++) {
+                                    for (int j = 0; j < 3; j++) {
+                                        cells[j][i].open();
+                                    }
+                                }
+                            }
                             paintFieled();
                         }
                     }
@@ -98,6 +105,73 @@ public class TicTacToe {
                 }
             }
         }
+        if(checkVictory()){
+            if(latestWasCross){
+                label.setText("first player wins");
+            } else{
+                label.setText("second player wins");
+            }
+
+        }
+    }
+
+    public boolean checkVictory(){
+        if(!latestWasCross){
+            for(int i = 0; i < 3; i++){
+                for(int j = 0; j < 3; j++){
+                    if(cells[j][i] instanceof Zero){
+                        if(j == 0){
+                            if(cells[1][i] instanceof Zero & cells[2][i] instanceof Zero){
+                                return true;
+                            }
+                        }
+                        if(i == 0){
+                            if(cells[j][1] instanceof Zero & cells[j][2] instanceof Zero){
+                                return true;
+                            }
+                        }
+                        if(j == 0 & i == 0){
+                            if(cells[1][1] instanceof Zero & cells[2][2] instanceof Zero){
+                                return true;
+                            }
+                        }
+                        if(j == 0 & i == 2){
+                            if(cells[1][1] instanceof Zero & cells[2][0] instanceof Zero){
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        } else{
+            for(int i = 0; i < 3; i++){
+                for(int j = 0; j < 3; j++){
+                    if(cells[j][i] instanceof Cross){
+                        if(j == 0){
+                            if(cells[1][i] instanceof Cross & cells[2][i] instanceof Cross){
+                                return true;
+                            }
+                        }
+                        if(i == 0){
+                            if(cells[j][1] instanceof Cross & cells[j][2] instanceof Cross){
+                                return true;
+                            }
+                        }
+                        if(j == 0 & i == 0){
+                            if(cells[1][1] instanceof Cross & cells[2][2] instanceof Cross){
+                                return true;
+                            }
+                        }
+                        if(j == 0 & i == 2){
+                            if(cells[1][1] instanceof Cross & cells[2][0] instanceof Cross){
+                                return true;
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        return false;
     }
 
 
