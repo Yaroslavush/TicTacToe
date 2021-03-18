@@ -27,7 +27,9 @@ public class TicTacToe {
         JMenuItem newGame = new JMenuItem("Start new game");
         newGame.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-
+                startNewRound();
+                gameScore.nullifyScore();
+                paintFieled();
             }
         });
         JMenuItem end = new JMenuItem("End game");
@@ -64,7 +66,6 @@ public class TicTacToe {
                             }
                             cells[x][y].open();
                             changeLatest();
-                            changeLabel();
                             if (checkWin()) {
                                 for (int i = 0; i < 3; i++) {
                                     for (int j = 0; j < 3; j++) {
@@ -107,13 +108,6 @@ public class TicTacToe {
         crossStartedLast = !crossStartedLast;
     }
 
-    public void changeLabel() {
-        if (latestWasCross) {
-            label.setText("second player's turn");
-        } else {
-            label.setText("first player's turn");
-        }
-    }
 
     public void paintFieled() {
         for (int i = 0; i < 3; i++) {
@@ -127,13 +121,32 @@ public class TicTacToe {
                 }
             }
         }
+        if (latestWasCross) {
+            label.setText("second player's turn");
+        } else {
+            label.setText("first player's turn");
+        }
+
         if (checkWin()) {
             if (latestWasCross) {
-                label.setText("first player wins");
+                label.setText("first player wins the round");
             } else {
-                label.setText("second player wins");
+                label.setText("second player wins the round");
             }
-            counter.setText("Game score (" + gameScore.getFirstScore() + ":" + gameScore.getSecondScore() + ")");
+        }
+        counter.setText("Game score (" + gameScore.getFirstScore() + ":" + gameScore.getSecondScore() + ")");
+        if(checkVictory()){
+            if(gameScore.getFirstScore() == 5){
+                label.setText("first player wins the game");
+            }else{
+                label.setText("second player wins the game");
+            }
+            for (int i = 0; i < 3; i++) {
+                for (int j = 0; j < 3; j++) {
+                    cells[j][i] = new Cell();
+                    cells[j][i].open();
+                }
+            }
         }
     }
 
@@ -219,6 +232,13 @@ public class TicTacToe {
             latestWasCross = false;
         }
         paintFieled();
+    }
+
+    public boolean checkVictory(){
+        if(gameScore.getFirstScore() == 5 | gameScore.getSecondScore() == 5){
+           return true;
+        }
+        return false;
     }
 
 

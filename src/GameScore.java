@@ -16,4 +16,10 @@ public class GameScore {
         return secondScore;
     }
 
+    public void nullifyScore() {
+
+        firstScore = 0;
+        secondScore = 0;
+    }
+
 }
