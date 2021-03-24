@@ -21,5 +21,11 @@ public class GameScore {
         firstScore = 0;
         secondScore = 0;
     }
+    public boolean checkVictory() {
+        if(firstScore == 5 || secondScore == 5){
+            return true;
+        }
+        return false;
+    }
 
 }

@@ -4,13 +4,13 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class TicTacToe {
-    boolean latestWasCross = false;
-    boolean crossStartedLast = false;
-    JLabel label;
-    JLabel counter;
-    Cell[][] cells;
-    JButton[][] buttons;
-    GameScore gameScore = new GameScore();
+    private boolean latestWasCross = false;
+    private boolean crossStartedLast = false;
+    private JLabel gameProgress;
+    private JLabel counter;
+    private Cell[][] cells;
+    private JButton[][] buttons;
+    private GameScore gameScore = new GameScore();
 
     TicTacToe() {
         cells = new Cell[3][3];
@@ -19,6 +19,10 @@ public class TicTacToe {
                 cells[i][j] = new Cell();
             }
         }
+        view();
+    }
+
+    private void view() {
 
         buttons = new JButton[3][3];
         JFrame frame = new JFrame("Tic tac toe");
@@ -46,70 +50,74 @@ public class TicTacToe {
         gameField.setLayout(new GridLayout(3, 3));
         JPanel window = new JPanel();
         window.setLayout(new BoxLayout(window, BoxLayout.Y_AXIS));
-        label = new JLabel("first player's turn");
+        gameProgress = new JLabel("first player's turn");
         counter = new JLabel("Game score (0:0)");
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 buttons[j][i] = new JButton();
                 buttons[j][i].setPreferredSize(new Dimension(45, 45));
                 gameField.add(buttons[j][i]);
-                final Points point = new Points(j, i);
+                final Point point = new Point(j, i);
                 buttons[j][i].addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
-                        int x = point.getX();
-                        int y = point.getY();
-                        if (cells[x][y].isClosed()) {
-                            if (latestWasCross) {
-                                cells[x][y] = new Zero();
-                            } else {
-                                cells[x][y] = new Cross();
-                            }
-                            cells[x][y].open();
-                            changeLatest();
-                            if (checkWin()) {
-                                for (int i = 0; i < 3; i++) {
-                                    for (int j = 0; j < 3; j++) {
-                                        cells[j][i].open();
-                                    }
-                                }
-                                if (latestWasCross) {
-                                    gameScore.enlargeFirstScore();
-                                } else {
-                                    gameScore.enlargeSecondScore();
-                                }
-                            }
-                            paintFieled();
-                        } else if (checkWin() | checkDraw()) {
-                            changeLast();
-                            startNewRound();
-                        }
+                        clickOnCell(point);
                     }
                 });
             }
         }
 
         window.add(counter);
-        window.add(label);
+        window.add(gameProgress);
         window.add(gameField);
         frame.setJMenuBar(menuBar);
         frame.setContentPane(window);
         frame.setDefaultCloseOperation(WindowConstants.EXIT_ON_CLOSE);
         frame.setVisible(true);
         frame.pack();
-
     }
 
-    public void changeLatest() {
-        latestWasCross = !latestWasCross;
+    private void clickOnCell (Point point) {
+        int x = point.getX();
+        int y = point.getY();
+        if (cells[x][y].isClosed()) {
+            if (latestWasCross) {
+                cells[x][y] = new Zero();
+            } else {
+                cells[x][y] = new Cross();
+            }
+            cells[x][y].open();
+            latestWasCross = !latestWasCross;
+            if (checkWin()) {
+                for (int i = 0; i < 3; i++) {
+                    for (int j = 0; j < 3; j++) {
+                        cells[j][i].open();
+                    }
+                }
+                if (latestWasCross) {
+                    gameScore.enlargeFirstScore();
+                } else {
+                    gameScore.enlargeSecondScore();
+                }
+            }
+
+            if(gameScore.checkVictory()){
+                for (int i = 0; i < 3; i++) {
+                    for (int j = 0; j < 3; j++) {
+                        cells[j][i] = new Cell();
+                        cells[j][i].open();
+                    }
+                }
+            }
+
+            paintFieled();
+        } else if (checkWin() | checkDraw()) {
+            crossStartedLast = !crossStartedLast;
+            startNewRound();
+        }
     }
 
-    public void changeLast() {
 
-        crossStartedLast = !crossStartedLast;
-    }
-
-
-    public void paintFieled() {
+    private void paintFieled() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (cells[j][i] instanceof Cross) {
@@ -121,36 +129,29 @@ public class TicTacToe {
                 }
             }
         }
-        if (latestWasCross) {
-            label.setText("second player's turn");
+        if(gameScore.checkVictory()){
+            if(gameScore.getFirstScore() == 5){
+                gameProgress.setText("first player wins the game");
+            }else{
+                gameProgress.setText("second player wins the game");
+            }
+        } else if (checkWin()) {
+            if (latestWasCross) {
+                gameProgress.setText("first player wins the round");
+            } else {
+                gameProgress.setText("second player wins the round");
+            }
+        } else if (latestWasCross) {
+            gameProgress.setText("second player's turn");
         } else {
-            label.setText("first player's turn");
+            gameProgress.setText("first player's turn");
         }
 
-        if (checkWin()) {
-            if (latestWasCross) {
-                label.setText("first player wins the round");
-            } else {
-                label.setText("second player wins the round");
-            }
-        }
         counter.setText("Game score (" + gameScore.getFirstScore() + ":" + gameScore.getSecondScore() + ")");
-        if(checkVictory()){
-            if(gameScore.getFirstScore() == 5){
-                label.setText("first player wins the game");
-            }else{
-                label.setText("second player wins the game");
-            }
-            for (int i = 0; i < 3; i++) {
-                for (int j = 0; j < 3; j++) {
-                    cells[j][i] = new Cell();
-                    cells[j][i].open();
-                }
-            }
-        }
+
     }
 
-    public boolean checkWin() {
+    private boolean checkWin() {
         if (!latestWasCross) {
             for (int i = 0; i < 3; i++) {
                 for (int j = 0; j < 3; j++) {
@@ -209,7 +210,7 @@ public class TicTacToe {
         return false;
     }
 
-    public boolean checkDraw() {
+    private boolean checkDraw() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (!(cells[j][i] instanceof Cross) & !(cells[j][i] instanceof Zero)) {
@@ -220,7 +221,7 @@ public class TicTacToe {
         return true;
     }
 
-    public void startNewRound() {
+    private void startNewRound() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 cells[j][i] = new Cell();
@@ -232,13 +233,6 @@ public class TicTacToe {
             latestWasCross = false;
         }
         paintFieled();
-    }
-
-    public boolean checkVictory(){
-        if(gameScore.getFirstScore() == 5 | gameScore.getSecondScore() == 5){
-           return true;
-        }
-        return false;
     }
 
 
