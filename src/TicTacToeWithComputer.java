@@ -9,19 +9,19 @@ public class TicTacToeWithComputer {
     private JLabel counter;
     private Cell[][] cells;
     private JButton[][] buttons;
-    private GameScore gameScore = new GameScore();
+    private GameScore gameScore = new GameScore(5);
 
     TicTacToeWithComputer() {
         cells = new Cell[3][3];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                cells[i][j] = new Cell();
+                cells[i][j] = new EmptyCell();
             }
         }
-        view();
+        initView();
     }
 
-    private void view() {
+    private void initView() {
 
         buttons = new JButton[3][3];
         JFrame frame = new JFrame("Tic tac toe");
@@ -32,7 +32,7 @@ public class TicTacToeWithComputer {
             public void actionPerformed(ActionEvent e) {
                 startNewRound();
                 gameScore.nullifyScore();
-                paintFieled();
+                paintFieled(false, false);
             }
         });
         JMenuItem end = new JMenuItem("End game");
@@ -78,39 +78,27 @@ public class TicTacToeWithComputer {
     private void clickOnCell(Point point) {
         int x = point.getX();
         int y = point.getY();
-        if (cells[x][y].isClosed()) {
+        boolean isVictory = gameScore.checkVictory();
+        if (checkWin() && !(isVictory) || checkDraw() && !(isVictory)) {
+            startNewRound();
+        } else if (cells[x][y] instanceof EmptyCell && !(isVictory)) {
             cells[x][y] = new Cross();
-            cells[x][y].open();
             latestWasPlayer = !latestWasPlayer;
             computerStroke();
-            if (checkWin()) {
-                for (int i = 0; i < 3; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        cells[j][i].open();
-                    }
-                }
+            boolean isWin = checkWin();
+            if (isWin) {
                 if (latestWasPlayer) {
                     gameScore.enlargeFirstScore();
                 } else {
                     gameScore.enlargeSecondScore();
                 }
             }
-            if (gameScore.checkVictory()) {
-                for (int i = 0; i < 3; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        cells[j][i] = new Cell();
-                        cells[j][i].open();
-                    }
-                }
-            }
-            paintFieled();
-        }
-        if (checkWin() || checkDraw()) {
-            startNewRound();
+            isVictory = gameScore.checkVictory();
+            paintFieled(isVictory, isWin);
         }
     }
 
-    private void paintFieled() {
+    private void paintFieled(boolean isVictory, boolean isWin) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (cells[j][i] instanceof Cross) {
@@ -122,8 +110,13 @@ public class TicTacToeWithComputer {
                 }
             }
         }
-
-        if (checkWin()) {
+        if (isVictory) {
+            if (gameScore.getFirstScore() == gameScore.getVictoryScore()) {
+                gameProgress.setText("you win the game");
+            } else {
+                gameProgress.setText("you lose the game");
+            }
+        } else if (isWin) {
             if (latestWasPlayer) {
                 gameProgress.setText("you win the round");
             } else {
@@ -131,13 +124,7 @@ public class TicTacToeWithComputer {
             }
         }
         counter.setText("Game score (" + gameScore.getFirstScore() + ":" + gameScore.getSecondScore() + ")");
-        if (gameScore.checkVictory()) {
-            if (gameScore.getFirstScore() == 5) {
-                gameProgress.setText("you win the game");
-            } else {
-                gameProgress.setText("you lose the game");
-            }
-        }
+
     }
 
     private boolean checkWin() {
@@ -217,11 +204,11 @@ public class TicTacToeWithComputer {
     private void startNewRound() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                cells[j][i] = new Cell();
+                cells[j][i] = new EmptyCell();
             }
         }
         latestWasPlayer = false;
-        paintFieled();
+        paintFieled(false, false);
     }
 
     private void computerStroke() {
@@ -231,51 +218,39 @@ public class TicTacToeWithComputer {
                 for (int j = 0; j < 3; j++) {
                     if (cells[0][i] instanceof Zero & cells[1][i] instanceof Zero & !(cells[2][i] instanceof Cross)) {
                         cells[2][i] = new Zero();
-                        cells[2][i].open();
                         return;
                     } else if (cells[0][i] instanceof Zero & cells[2][i] instanceof Zero & !(cells[1][i] instanceof Cross)) {
                         cells[1][i] = new Zero();
-                        cells[1][i].open();
                         return;
                     } else if (cells[j][0] instanceof Zero & cells[j][1] instanceof Zero & !(cells[j][2] instanceof Cross)) {
                         cells[j][2] = new Zero();
-                        cells[j][2].open();
                         return;
                     } else if (cells[j][0] instanceof Zero & cells[j][2] instanceof Zero & !(cells[j][1] instanceof Cross)) {
                         cells[j][1] = new Zero();
-                        cells[j][1].open();
                         return;
                     } else if (!(cells[0][i] instanceof Cross) & cells[1][i] instanceof Zero & cells[2][i] instanceof Zero) {
                         cells[0][i] = new Zero();
-                        cells[0][i].open();
                         return;
                     } else if (!(cells[j][0] instanceof Cross) & cells[j][1] instanceof Zero & cells[j][2] instanceof Zero) {
                         cells[j][0] = new Zero();
-                        cells[j][0].open();
                         return;
                     } else if (!(cells[0][0] instanceof Cross) & cells[1][1] instanceof Zero & cells[2][2] instanceof Zero) {
                         cells[0][0] = new Zero();
-                        cells[0][0].open();
                         return;
                     } else if (!(cells[1][1] instanceof Cross) & cells[0][0] instanceof Zero & cells[2][2] instanceof Zero) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (!(cells[2][2] instanceof Cross) & cells[1][1] instanceof Zero & cells[0][0] instanceof Zero) {
                         cells[2][2] = new Zero();
-                        cells[2][2].open();
                         return;
                     } else if (!(cells[0][2] instanceof Cross) & cells[1][1] instanceof Zero & cells[2][0] instanceof Zero) {
                         cells[0][2] = new Zero();
-                        cells[0][2].open();
                         return;
                     } else if (!(cells[1][1] instanceof Cross) & cells[0][2] instanceof Zero & cells[2][0] instanceof Zero) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (!(cells[2][0] instanceof Cross) & cells[1][1] instanceof Zero & cells[0][2] instanceof Zero) {
                         cells[2][0] = new Zero();
-                        cells[2][0].open();
                         return;
                     }
                 }
@@ -285,51 +260,39 @@ public class TicTacToeWithComputer {
                 for (int j = 0; j < 3; j++) {
                     if (cells[0][i] instanceof Cross & cells[1][i] instanceof Cross & !(cells[2][i] instanceof Zero)) {
                         cells[2][i] = new Zero();
-                        cells[2][i].open();
                         return;
                     } else if (cells[0][i] instanceof Cross & cells[2][i] instanceof Cross & !(cells[1][i] instanceof Zero)) {
                         cells[1][i] = new Zero();
-                        cells[1][i].open();
                         return;
                     } else if (cells[j][0] instanceof Cross & cells[j][1] instanceof Cross & !(cells[j][2] instanceof Zero)) {
                         cells[j][2] = new Zero();
-                        cells[j][2].open();
                         return;
                     } else if (cells[j][0] instanceof Cross & cells[j][2] instanceof Cross & !(cells[j][1] instanceof Zero)) {
                         cells[j][1] = new Zero();
-                        cells[j][1].open();
                         return;
                     } else if (!(cells[0][i] instanceof Zero) & cells[1][i] instanceof Cross & cells[2][i] instanceof Cross) {
                         cells[0][i] = new Zero();
-                        cells[0][i].open();
                         return;
                     } else if (!(cells[j][0] instanceof Zero) & cells[j][1] instanceof Cross & cells[j][2] instanceof Cross) {
                         cells[j][0] = new Zero();
-                        cells[j][0].open();
                         return;
                     } else if (!(cells[0][0] instanceof Zero) & cells[1][1] instanceof Cross & cells[2][2] instanceof Cross) {
                         cells[0][0] = new Zero();
-                        cells[0][0].open();
                         return;
                     } else if (!(cells[1][1] instanceof Zero) & cells[0][0] instanceof Cross & cells[2][2] instanceof Cross) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (!(cells[2][2] instanceof Zero) & cells[1][1] instanceof Cross & cells[0][0] instanceof Cross) {
                         cells[2][2] = new Zero();
-                        cells[2][2].open();
                         return;
                     } else if (!(cells[0][2] instanceof Zero) & cells[1][1] instanceof Cross & cells[2][0] instanceof Cross) {
                         cells[0][2] = new Zero();
-                        cells[0][2].open();
                         return;
                     } else if (!(cells[1][1] instanceof Zero) & cells[0][2] instanceof Cross & cells[2][0] instanceof Cross) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (!(cells[2][0] instanceof Zero) & cells[1][1] instanceof Cross & cells[0][2] instanceof Cross) {
                         cells[2][0] = new Zero();
-                        cells[2][0].open();
                         return;
                     }
                 }
@@ -338,51 +301,39 @@ public class TicTacToeWithComputer {
                 for (int j = 0; j < 3; j++) {
                     if (cells[0][i] instanceof Zero & !(cells[1][i] instanceof Cross) & !(cells[2][i] instanceof Cross)) {
                         cells[1][i] = new Zero();
-                        cells[1][i].open();
                         return;
                     } else if (cells[j][0] instanceof Zero & !(cells[j][1] instanceof Cross) & !(cells[j][2] instanceof Cross)) {
                         cells[j][1] = new Zero();
-                        cells[j][1].open();
                         return;
                     } else if (cells[1][i] instanceof Zero & !(cells[0][i] instanceof Cross) & !(cells[2][i] instanceof Cross)) {
                         cells[0][i] = new Zero();
-                        cells[0][i].open();
                         return;
                     } else if (cells[2][i] instanceof Zero & !(cells[1][i] instanceof Cross) & !(cells[0][i] instanceof Cross)) {
                         cells[1][i] = new Zero();
-                        cells[1][i].open();
                         return;
                     } else if (cells[j][1] instanceof Zero & !(cells[j][0] instanceof Cross) & !(cells[j][2] instanceof Cross)) {
                         cells[j][0] = new Zero();
-                        cells[j][0].open();
                         return;
                     } else if (cells[j][2] instanceof Zero & !(cells[j][1] instanceof Cross) & !(cells[j][0] instanceof Cross)) {
                         cells[j][1] = new Zero();
-                        cells[j][1].open();
                         return;
                     } else if (cells[0][0] instanceof Zero & !(cells[1][1] instanceof Cross) & !(cells[2][2] instanceof Cross)) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (cells[2][2] instanceof Zero & !(cells[1][1] instanceof Cross) & !(cells[0][0] instanceof Cross)) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (cells[0][2] instanceof Zero & !(cells[1][1] instanceof Cross) & !(cells[2][0] instanceof Cross)) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (cells[2][0] instanceof Zero & !(cells[1][1] instanceof Cross) & !(cells[0][2] instanceof Cross)) {
                         cells[1][1] = new Zero();
-                        cells[1][1].open();
                         return;
                     } else if (cells[1][1] instanceof Zero & !(cells[0][0] instanceof Cross) & !(cells[2][2] instanceof Cross)) {
                         cells[0][0] = new Zero();
-                        cells[0][0].open();
                         return;
                     } else if (cells[1][1] instanceof Zero & !(cells[2][0] instanceof Cross) & !(cells[0][2] instanceof Cross)) {
                         cells[0][2] = new Zero();
-                        cells[0][2].open();
                         return;
                     }
                 }
@@ -393,7 +344,6 @@ public class TicTacToeWithComputer {
                 int y = (int) (Math.random() * 3);
                 if (!(cells[x][y] instanceof Cross) & !(cells[x][y] instanceof Zero)) {
                     cells[x][y] = new Zero();
-                    cells[x][y].open();
                     break;
                 }
             }

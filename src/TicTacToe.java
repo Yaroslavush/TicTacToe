@@ -10,19 +10,19 @@ public class TicTacToe {
     private JLabel counter;
     private Cell[][] cells;
     private JButton[][] buttons;
-    private GameScore gameScore = new GameScore();
+    private GameScore gameScore = new GameScore(5);
 
     TicTacToe() {
         cells = new Cell[3][3];
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                cells[i][j] = new Cell();
+                cells[i][j] = new EmptyCell();
             }
         }
-        view();
+        initView();
     }
 
-    private void view() {
+    private void initView() {
 
         buttons = new JButton[3][3];
         JFrame frame = new JFrame("Tic tac toe");
@@ -33,7 +33,7 @@ public class TicTacToe {
             public void actionPerformed(ActionEvent e) {
                 startNewRound();
                 gameScore.nullifyScore();
-                paintFieled();
+                paintFieled(false, false);
             }
         });
         JMenuItem end = new JMenuItem("End game");
@@ -76,48 +76,35 @@ public class TicTacToe {
         frame.pack();
     }
 
-    private void clickOnCell (Point point) {
+    private void clickOnCell(Point point) {
         int x = point.getX();
         int y = point.getY();
-        if (cells[x][y].isClosed()) {
+        boolean isVictory = gameScore.checkVictory();
+        if (checkWin() && !(isVictory) || checkDraw() && !(isVictory)) {
+            crossStartedLast = !crossStartedLast;
+            startNewRound();
+        } else if (cells[x][y] instanceof EmptyCell && !(isVictory)) {
             if (latestWasCross) {
                 cells[x][y] = new Zero();
             } else {
                 cells[x][y] = new Cross();
             }
-            cells[x][y].open();
             latestWasCross = !latestWasCross;
-            if (checkWin()) {
-                for (int i = 0; i < 3; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        cells[j][i].open();
-                    }
-                }
+            boolean isWin = checkWin();
+            if (isWin) {
                 if (latestWasCross) {
                     gameScore.enlargeFirstScore();
                 } else {
                     gameScore.enlargeSecondScore();
                 }
             }
-
-            if(gameScore.checkVictory()){
-                for (int i = 0; i < 3; i++) {
-                    for (int j = 0; j < 3; j++) {
-                        cells[j][i] = new Cell();
-                        cells[j][i].open();
-                    }
-                }
-            }
-
-            paintFieled();
-        } else if (checkWin() | checkDraw()) {
-            crossStartedLast = !crossStartedLast;
-            startNewRound();
+            isVictory = gameScore.checkVictory();
+            paintFieled(isVictory, isWin);
         }
     }
 
 
-    private void paintFieled() {
+    private void paintFieled(boolean isVictory, boolean isWin) {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
                 if (cells[j][i] instanceof Cross) {
@@ -129,13 +116,13 @@ public class TicTacToe {
                 }
             }
         }
-        if(gameScore.checkVictory()){
-            if(gameScore.getFirstScore() == 5){
+        if (isVictory) {
+            if (gameScore.getFirstScore() == gameScore.getVictoryScore()) {
                 gameProgress.setText("first player wins the game");
-            }else{
+            } else {
                 gameProgress.setText("second player wins the game");
             }
-        } else if (checkWin()) {
+        } else if (isWin) {
             if (latestWasCross) {
                 gameProgress.setText("first player wins the round");
             } else {
@@ -157,22 +144,22 @@ public class TicTacToe {
                 for (int j = 0; j < 3; j++) {
                     if (cells[j][i] instanceof Zero) {
                         if (j == 0) {
-                            if (cells[1][i] instanceof Zero & cells[2][i] instanceof Zero) {
+                            if (cells[1][i] instanceof Zero && cells[2][i] instanceof Zero) {
                                 return true;
                             }
                         }
                         if (i == 0) {
-                            if (cells[j][1] instanceof Zero & cells[j][2] instanceof Zero) {
+                            if (cells[j][1] instanceof Zero && cells[j][2] instanceof Zero) {
                                 return true;
                             }
                         }
-                        if (j == 0 & i == 0) {
-                            if (cells[1][1] instanceof Zero & cells[2][2] instanceof Zero) {
+                        if (j == 0 && i == 0) {
+                            if (cells[1][1] instanceof Zero && cells[2][2] instanceof Zero) {
                                 return true;
                             }
                         }
-                        if (j == 0 & i == 2) {
-                            if (cells[1][1] instanceof Zero & cells[2][0] instanceof Zero) {
+                        if (j == 0 && i == 2) {
+                            if (cells[1][1] instanceof Zero && cells[2][0] instanceof Zero) {
                                 return true;
                             }
                         }
@@ -184,22 +171,22 @@ public class TicTacToe {
                 for (int j = 0; j < 3; j++) {
                     if (cells[j][i] instanceof Cross) {
                         if (j == 0) {
-                            if (cells[1][i] instanceof Cross & cells[2][i] instanceof Cross) {
+                            if (cells[1][i] instanceof Cross && cells[2][i] instanceof Cross) {
                                 return true;
                             }
                         }
                         if (i == 0) {
-                            if (cells[j][1] instanceof Cross & cells[j][2] instanceof Cross) {
+                            if (cells[j][1] instanceof Cross && cells[j][2] instanceof Cross) {
                                 return true;
                             }
                         }
-                        if (j == 0 & i == 0) {
-                            if (cells[1][1] instanceof Cross & cells[2][2] instanceof Cross) {
+                        if (j == 0 && i == 0) {
+                            if (cells[1][1] instanceof Cross && cells[2][2] instanceof Cross) {
                                 return true;
                             }
                         }
-                        if (j == 0 & i == 2) {
-                            if (cells[1][1] instanceof Cross & cells[2][0] instanceof Cross) {
+                        if (j == 0 && i == 2) {
+                            if (cells[1][1] instanceof Cross && cells[2][0] instanceof Cross) {
                                 return true;
                             }
                         }
@@ -213,7 +200,7 @@ public class TicTacToe {
     private boolean checkDraw() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                if (!(cells[j][i] instanceof Cross) & !(cells[j][i] instanceof Zero)) {
+                if (!(cells[j][i] instanceof Cross) && !(cells[j][i] instanceof Zero)) {
                     return false;
                 }
             }
@@ -224,15 +211,15 @@ public class TicTacToe {
     private void startNewRound() {
         for (int i = 0; i < 3; i++) {
             for (int j = 0; j < 3; j++) {
-                cells[j][i] = new Cell();
+                cells[j][i] = new EmptyCell();
             }
         }
-        if(crossStartedLast){
+        if (crossStartedLast) {
             latestWasCross = true;
-        }else{
+        } else {
             latestWasCross = false;
         }
-        paintFieled();
+        paintFieled(false, false);
     }
 
 
